@@ -16,7 +16,6 @@ public class SymbolV2Parser implements HuobiModelParser<SymbolV2> {
 
     @Override
     public SymbolV2 parse(JSONObject json) {
-        System.out.println("Parse " + json);
         if (json.get("p1") == null)
             return null;
 
@@ -28,7 +27,6 @@ public class SymbolV2Parser implements HuobiModelParser<SymbolV2> {
         result.setLr(json.getBigDecimal("lr"));
         result.setToa(json.getLong("toa"));
 
-        System.out.println("Finish");
         return result;
     }
 
@@ -51,16 +49,9 @@ public class SymbolV2Parser implements HuobiModelParser<SymbolV2> {
             return new ArrayList<>();
         }
 
-        List<SymbolV2> result = new ArrayList<>();
-        for (int i = 0; i < jsonArray.size(); i++) {
-            System.out.println(i);
-            result.add(parse(jsonArray.get(i)));
-        }
-        return result;
-
-//        return (List<SymbolV2>) jsonArray.stream()
-//                .map(this::parse)
-//                .filter(Objects::nonNull)
-//                .collect(Collectors.toList());
+        return (List<SymbolV2>) jsonArray.stream()
+                .map(this::parse)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }

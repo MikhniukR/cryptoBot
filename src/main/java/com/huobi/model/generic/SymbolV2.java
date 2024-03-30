@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
 public class SymbolV2 {
     private String sc;
     private  String dn;
@@ -43,4 +42,40 @@ public class SymbolV2 {
     private String castate;
     private String ca1oa;
     private String ca2oa;
+
+    @Override
+    public String toString() {
+        return "SymbolV2{" +
+                "sc='" + sc + '\'' +
+                ", dn='" + dn + '\'' +
+                ", bc='" + bc + '\'' +
+                ", bcdn='" + bcdn + '\'' +
+                ", qc='" + qc + '\'' +
+                ", qcdn='" + qcdn + '\'' +
+                ", state='" + state + '\'' +
+                ", whe=" + whe +
+                ", cd=" + cd +
+                ", te=" + te +
+                ", toa=" + toa +
+                ", sp='" + sp + '\'' +
+                ", w=" + w +
+                ", ttp=" + ttp +
+                ", tap=" + tap +
+                ", tpp=" + tpp +
+                ", fp=" + fp +
+                ", suspendDesc='" + suspendDesc + '\'' +
+                ", transferBoardDesc='" + transferBoardDesc + '\'' +
+                ", tags='" + tags + '\'' +
+                ", lr=" + lr +
+                ", smlr=" + smlr +
+                ", flr='" + flr + '\'' +
+                ", wr='" + wr + '\'' +
+                ", d=" + d +
+                ", elr='" + elr + '\'' +
+                ", p1=" + p1 +
+                ", castate='" + castate + '\'' +
+                ", ca1oa='" + ca1oa + '\'' +
+                ", ca2oa='" + ca2oa + '\'' +
+                "}\n";
+    }
 }

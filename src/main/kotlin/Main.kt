@@ -57,7 +57,7 @@ fun main() {
                 bot.sendMessage(chatId = ChatId.fromId(message.chat.id), text = json)
             }
             command("symbols") {
-                val response = genericService.getSymbolsV2(1000)
+                val response = genericService.getSymbolsV2(10)
                 bot.sendMessage(chatId = ChatId.fromId(message.chat.id), text = response.toString())
             }
             command("help") {

@@ -12,7 +12,6 @@ import lombok.ToString;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
 public class Candlestick {
 
   private Long id;
@@ -31,4 +30,16 @@ public class Candlestick {
 
   private BigDecimal vol;
 
+  @Override
+  public String toString() {
+    return "Candlestick{" +
+            ", amount=" + amount +
+            ", count=" + count +
+            ", open=" + open +
+            ", high=" + high +
+            ", low=" + low +
+            ", close=" + close +
+            ", vol=" + vol +
+            '}';
+  }
 }

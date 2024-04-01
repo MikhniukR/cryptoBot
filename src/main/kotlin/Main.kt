@@ -12,6 +12,7 @@ import com.huobi.client.req.market.CandlestickRequest
 import com.huobi.constant.HuobiOptions
 import com.huobi.constant.enums.CandlestickIntervalEnum
 import com.huobi.model.market.Candlestick
+import java.util.*
 import java.util.function.Consumer
 
 // Create GenericClient instance and get the timestamp
@@ -27,7 +28,7 @@ fun getCourseForPair(pair: String): List<Candlestick> {
     )
 
     list.forEach(Consumer { candlestick: Candlestick ->
-        System.out.println(candlestick.toString())
+        println(candlestick.toString())
     })
     return list
 }
@@ -45,19 +46,10 @@ fun main() {
                 val response =
                     if (joinedArgs.isNotBlank()) getCourseForPair(joinedArgs).toString()
                     else "There is no text apart from command!"
-                val json: String = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(response)
-                try {
-                    // Convert String to JSON object
-                    val json: JsonNode = objectMapper.readValue(response, JsonNode::class.java)
-                    json.fields()
-                    json.get("")
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-                bot.sendMessage(chatId = ChatId.fromId(message.chat.id), text = json)
+                bot.sendMessage(chatId = ChatId.fromId(message.chat.id), text = response)
             }
             command("symbols") {
-                val response = genericService.getSymbolsV2(10)
+                val response = genericService.getSymbolsV2(50)
                 bot.sendMessage(chatId = ChatId.fromId(message.chat.id), text = response.toString())
             }
             command("help") {

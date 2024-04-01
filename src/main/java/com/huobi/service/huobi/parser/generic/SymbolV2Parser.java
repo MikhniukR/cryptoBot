@@ -26,6 +26,22 @@ public class SymbolV2Parser implements HuobiModelParser<SymbolV2> {
         result.setBc(json.getString("bc"));
         result.setLr(json.getBigDecimal("lr"));
         result.setToa(json.getLong("toa"));
+        result.setFp(json.getBigDecimal("fp"));
+        result.setDn(json.getString("dn"));
+        result.setSc(json.getString("sc"));
+        result.setQc(json.getString("qc"));
+        result.setState(json.getString("state"));
+        result.setWr(json.getString("wr"));
+        result.setSp(json.getString("sp"));
+        result.setCd(json.getBoolean("cd"));
+        result.setTap(json.getBigDecimal("tap"));
+        result.setBcdn(json.getString("bcdn"));
+        result.setQcdn(json.getString("qcdn"));
+        result.setTe(json.getBoolean("te"));
+        result.setTtp(json.getBigDecimal("ttp"));
+        result.setTpp(json.getBigDecimal("tpp"));
+        result.setWhe(json.getBoolean("whe"));
+        result.setW(json.getInteger("w"));
 
         return result;
     }

@@ -4,7 +4,7 @@ plugins {
     id("net.ltgt.apt") version "0.15"
 }
 
-group = "ru.huobi.bot.mikhniuk"
+group = "ru.crypto.bot.mikhniuk"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -22,6 +22,7 @@ dependencies {
     implementation("commons-lang:commons-lang:2.6")
     implementation("com.warrenstrange:googleauth:1.2.0")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.17.0")
+    implementation("io.github.binance:binance-connector-java:3.2.0")
 
     compileOnly("org.projectlombok:lombok:edge-releases")
     compileOnly("org.projectlombok:lombok:1.18.32")

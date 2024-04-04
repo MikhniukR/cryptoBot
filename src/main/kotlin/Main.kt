@@ -1,4 +1,4 @@
-package ru.huobi.bot
+package ru.crypto.bot
 
 import com.binance.connector.client.SpotClient
 import com.binance.connector.client.impl.SpotClientImpl
@@ -12,9 +12,6 @@ import com.huobi.client.req.market.CandlestickRequest
 import com.huobi.constant.HuobiOptions
 import com.huobi.constant.enums.CandlestickIntervalEnum
 import com.huobi.model.market.Candlestick
-import org.json.JSONArray
-import org.json.JSONObject
-import java.util.HashMap
 import java.util.function.Consumer
 
 
@@ -24,6 +21,8 @@ val serverTime: Long = genericService.getTimestamp()
 
 // Create MarketClient instance and get btcusdt latest 1-min candlestick
 val marketClient = MarketClient.create(HuobiOptions())
+
+val byBitService = ByBitService()
 
 fun getCourseForPairHuobi(pair: String): List<Candlestick> {
     val list: List<Candlestick> = marketClient.getCandlestick(
@@ -51,6 +50,10 @@ fun getCourseForPairBinance(pair: String): String {
     return result
 }
 
+fun getCourseForPairByBit(pair: String): String {
+    return byBitService.getOrderBook(pair.uppercase())
+}
+
 
 fun main() {
     val bot = bot {
@@ -60,14 +63,21 @@ fun main() {
                 bot.sendMessage(chatId = ChatId.fromId(message.chat.id), text = "Hi there in Crypto trade bot!")
             }
             command("course") {
-                val joinedArgs = args.joinToString()
+                val tradePair = args.joinToString()
                 val response =
-                    if (joinedArgs.isNotBlank()) getCourseForPairHuobi(joinedArgs).toString()
+                    if (tradePair.isNotBlank()) getCourseForPairHuobi(tradePair).toString()
                     else "There is no text apart from command!"
-                bot.sendMessage(chatId = ChatId.fromId(message.chat.id), text = "Huobi \n$response")
                 bot.sendMessage(
                     chatId = ChatId.fromId(message.chat.id),
-                    text = "Binance \n${getCourseForPairBinance(joinedArgs)}"
+                    text = "#Huobi \n$response"
+                )
+                bot.sendMessage(
+                    chatId = ChatId.fromId(message.chat.id),
+                    text = "#Binance \n${getCourseForPairBinance(tradePair)}"
+                )
+                bot.sendMessage(
+                    chatId = ChatId.fromId(message.chat.id),
+                    text = "#ByBit \n${getCourseForPairByBit(tradePair)}"
                 )
             }
             command("symbols") {

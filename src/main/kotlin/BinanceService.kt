@@ -17,7 +17,7 @@ class BinanceService : CryptoService {
 
     val client: SpotClient = SpotClientImpl()
 
-    override fun getCourseForPair(pair: String): List<String> {
+    override fun getCourseForPair(pair: String): List<CoursePair> {
         val parameters: Map<String, Any> = hashMapOf(Pair("symbol", pair.uppercase()), Pair("limit", 10))
         var result: String
         try {
@@ -29,14 +29,15 @@ class BinanceService : CryptoService {
 
         val json = JSONArray(result)
         return IntStream.range(0, json.length())
-            .mapToObj { json.getJSONObject(it).toString() }
+            .mapToObj { json.getJSONObject(it) }
+            .map { CoursePair(it.getDouble("quoteQty"), it.getDouble("price")) }
             .collect(Collectors.toList())
     }
 
     override fun getOrderBook(pair: String): String {
         val client = HttpClient.newBuilder().build();
         val request = HttpRequest.newBuilder()
-            .uri(URI.create("${PROD_URL}/api/v3/depth?symbol=$pair"))
+            .uri(URI.create("${PROD_URL}/api/v3/depth?symbol=${pair.uppercase()}"))
             .build();
         return JSONObject(client.send(request, HttpResponse.BodyHandlers.ofString()).body()).toString()
     }

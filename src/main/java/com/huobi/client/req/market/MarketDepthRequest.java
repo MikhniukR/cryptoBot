@@ -22,6 +22,11 @@ public class MarketDepthRequest {
 
   private DepthStepEnum step;
 
+  public MarketDepthRequest(String symbol, DepthStepEnum step) {
+    this.symbol = symbol;
+    this.step = step;
+  }
+
   public String getSymbol() {
     return symbol;
   }

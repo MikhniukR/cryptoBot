@@ -19,7 +19,7 @@ class ByBitService : CryptoService {
         return response.toString()
     }
 
-    override fun getCourseForPair(pair: String): List<String> {
+    override fun getCourseForPair(pair: String): List<CoursePair> {
         val client = HttpClient.newBuilder().build();
         val request = HttpRequest.newBuilder()
             .uri(URI.create("https://api-testnet.bybit.com/v5/market/tickers?category=inverse&symbol=$pair"))
@@ -32,7 +32,8 @@ class ByBitService : CryptoService {
         )
 
         return IntStream.range(0, response.length())
-            .mapToObj { response.getJSONObject(it).toString() }
+            .mapToObj { response.getJSONObject(it) }
+            .map { CoursePair(it.getDouble("openInterestValue"), it.getDouble("bid1Price")) }
             .collect(Collectors.toList())
     }
 
@@ -43,7 +44,7 @@ class ByBitService : CryptoService {
             .uri(URI.create("https://api-testnet.bybit.com/v5/market/orderbook?category=spot&symbol=${pair.uppercase()}&limit=5"))
             .build()
         val response = client.send(request, HttpResponse.BodyHandlers.ofString())
-        return response.body().toString()
+        return JSONObject(response.body().toString()).getJSONObject("result").toString()
     }
 
     override fun getSymbols(): Set<String> {

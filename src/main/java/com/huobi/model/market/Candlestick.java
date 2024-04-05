@@ -42,4 +42,36 @@ public class Candlestick {
             ", vol=" + vol +
             '}';
   }
+
+  public Long getId() {
+    return id;
+  }
+
+  public BigDecimal getAmount() {
+    return amount;
+  }
+
+  public BigDecimal getCount() {
+    return count;
+  }
+
+  public BigDecimal getOpen() {
+    return open;
+  }
+
+  public BigDecimal getHigh() {
+    return high;
+  }
+
+  public BigDecimal getLow() {
+    return low;
+  }
+
+  public BigDecimal getClose() {
+    return close;
+  }
+
+  public BigDecimal getVol() {
+    return vol;
+  }
 }

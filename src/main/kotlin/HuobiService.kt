@@ -7,6 +7,7 @@ import com.huobi.client.req.market.MarketDepthRequest
 import com.huobi.constant.HuobiOptions
 import com.huobi.constant.enums.CandlestickIntervalEnum
 import com.huobi.constant.enums.DepthSizeEnum
+import com.huobi.constant.enums.DepthStepEnum
 import com.huobi.model.market.Candlestick
 import java.util.function.Consumer
 import java.util.stream.Collector
@@ -21,7 +22,7 @@ class HuobiService : CryptoService {
     // Create MarketClient instance and get btcusdt latest 1-min candlestick
     val marketClient = MarketClient.create(HuobiOptions())
 
-    override fun getCourseForPair(pair: String): List<String> {
+    override fun getCourseForPair(pair: String): List<CoursePair> {
         val list: List<Candlestick> = marketClient.getCandlestick(
             CandlestickRequest(pair.lowercase(), CandlestickIntervalEnum.MIN1, 10)
         )
@@ -29,11 +30,11 @@ class HuobiService : CryptoService {
         list.forEach(Consumer { candlestick: Candlestick ->
             println(candlestick.toString())
         })
-        return list.stream().map { it.toString() }.collect(Collectors.toList())
+        return list.stream().map { CoursePair(it.vol.toDouble(), it.open.toDouble())}.collect(Collectors.toList())
     }
 
     override fun getOrderBook(pair: String): String {
-        val marketDepth = marketClient.getMarketDepth(MarketDepthRequest())
+        val marketDepth = marketClient.getMarketDepth(MarketDepthRequest(pair, DepthStepEnum.STEP1))
         return marketDepth.toString()
     }
 

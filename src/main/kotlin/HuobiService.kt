@@ -3,14 +3,16 @@ package ru.crypto.bot
 import com.huobi.client.GenericClient
 import com.huobi.client.MarketClient
 import com.huobi.client.req.market.CandlestickRequest
+import com.huobi.client.req.market.MarketDepthRequest
 import com.huobi.constant.HuobiOptions
 import com.huobi.constant.enums.CandlestickIntervalEnum
+import com.huobi.constant.enums.DepthSizeEnum
 import com.huobi.model.market.Candlestick
 import java.util.function.Consumer
 import java.util.stream.Collector
 import java.util.stream.Collectors
 
-class HuobiService {
+class HuobiService : CryptoService {
 
     // Create GenericClient instance and get the timestamp
     val genericService = GenericClient.create(HuobiOptions())
@@ -19,7 +21,7 @@ class HuobiService {
     // Create MarketClient instance and get btcusdt latest 1-min candlestick
     val marketClient = MarketClient.create(HuobiOptions())
 
-    fun getCourseForPair(pair: String): List<Candlestick> {
+    override fun getCourseForPair(pair: String): List<String> {
         val list: List<Candlestick> = marketClient.getCandlestick(
             CandlestickRequest(pair.lowercase(), CandlestickIntervalEnum.MIN1, 10)
         )
@@ -27,10 +29,15 @@ class HuobiService {
         list.forEach(Consumer { candlestick: Candlestick ->
             println(candlestick.toString())
         })
-        return list
+        return list.stream().map { it.toString() }.collect(Collectors.toList())
     }
 
-    fun getSymbols(): Set<String> {
+    override fun getOrderBook(pair: String): String {
+        val marketDepth = marketClient.getMarketDepth(MarketDepthRequest())
+        return marketDepth.toString()
+    }
+
+    override fun getSymbols(): Set<String> {
         return genericService.getSymbolsV2(1000).stream()
             .map { it.dn.toString() }
             .collect(Collectors.toSet())

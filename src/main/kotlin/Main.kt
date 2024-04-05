@@ -4,6 +4,7 @@ import com.github.kotlintelegrambot.bot
 import com.github.kotlintelegrambot.dispatch
 import com.github.kotlintelegrambot.dispatcher.callbackQuery
 import com.github.kotlintelegrambot.dispatcher.command
+import com.github.kotlintelegrambot.dispatcher.text
 import com.github.kotlintelegrambot.entities.ChatId
 import com.github.kotlintelegrambot.entities.InlineKeyboardMarkup
 import com.github.kotlintelegrambot.entities.keyboard.InlineKeyboardButton
@@ -22,33 +23,83 @@ fun main() {
             command("start") {
                 bot.sendMessage(chatId = ChatId.fromId(message.chat.id), text = "Hi there in Crypto trade bot!")
             }
+            command("help") {
+                bot.sendMessage(
+                    chatId = ChatId.fromId(message.chat.id),
+                    text = "Hi there!, this is the list of commands:\n" +
+                            "/start say hello\n" +
+                            "/help show this message\n" +
+                            "/course pair show trade pair course\n" +
+                            "\"course btcusdt\"\n" +
+                            "/orderBook pair\n" +
+                            "/symbols get all available symbols"
+                )
+            }
             command("course") {
                 val tradePair = args.joinToString()
-                val response =
-                    if (tradePair.isNotBlank()) huobiService.getCourseForPair(tradePair).toString()
-                    else "There is no text apart from command!"
+                if (tradePair.isBlank()) {
+                    bot.sendMessage(
+                        chatId = ChatId.fromId(message.chat.id),
+                        text = "There is no trading pair"
+                    )
+                    return@command
+                }
                 runBlocking {
-                    val job1 = launch {
+                    val huobi = launch {
                         bot.sendMessage(
                             chatId = ChatId.fromId(message.chat.id),
-                            text = "#Huobi \n$response"
+                            text = "#Huobi \n${huobiService.getCourseForPair(tradePair)}"
                         )
                     }
-                    val job2 = launch {
+                    val binance = launch {
                         bot.sendMessage(
                             chatId = ChatId.fromId(message.chat.id),
                             text = "#Binance \n${binanceService.getCourseForPair(tradePair)}"
                         )
                     }
-                    val job3 = launch {
+                    val byBit = launch {
+                        bot.sendMessage(
+                            chatId = ChatId.fromId(message.chat.id),
+                            text = "#ByBit \n${byBitService.getCourseForPair(tradePair)}"
+                        )
+                    }
+                    huobi.join()
+                    binance.join()
+                    byBit.join()
+                }
+            }
+
+            command("orderBook") {
+                val tradePair = args.joinToString()
+                if (tradePair.isBlank()) {
+                    bot.sendMessage(
+                        chatId = ChatId.fromId(message.chat.id),
+                        text = "There is no trading pair"
+                    )
+                    return@command
+                }
+                runBlocking {
+                    val huobi = launch {
+                        bot.sendMessage(
+                            chatId = ChatId.fromId(message.chat.id),
+                            text = "#Huobi \n${huobiService.getOrderBook(tradePair)}"
+                        )
+                    }
+                    val binance = launch {
+                        bot.sendMessage(
+                            chatId = ChatId.fromId(message.chat.id),
+                            text = "#Binance \n${binanceService.getOrderBook(tradePair)}"
+                        )
+                    }
+                    val byBit = launch {
                         bot.sendMessage(
                             chatId = ChatId.fromId(message.chat.id),
                             text = "#ByBit \n${byBitService.getOrderBook(tradePair)}"
                         )
                     }
-                    job1.join()
-                    job2.join()
-                    job3.join()
+                    huobi.join()
+                    binance.join()
+                    byBit.join()
                 }
             }
             command("symbols") {
@@ -86,17 +137,6 @@ fun main() {
                     chatId = ChatId.fromId(message.chat.id),
                     text = "Hello, inline buttons!",
                     replyMarkup = inlineKeyboardMarkup,
-                )
-            }
-            command("help") {
-                bot.sendMessage(
-                    chatId = ChatId.fromId(message.chat.id),
-                    text = "Hi there!, this is the list of commands:\n" +
-                            "/start say hello\n" +
-                            "/help show this message\n" +
-                            "/course show trade pair course\n" +
-                            "\"course btcusdt\"\n" +
-                            "/symbols get all available symbols"
                 )
             }
             callbackQuery("testButton") {

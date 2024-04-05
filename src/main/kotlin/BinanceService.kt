@@ -9,17 +9,15 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.util.function.IntFunction
 import java.util.stream.Collectors
 import java.util.stream.IntStream
 
 
-
-class BinanceService {
+class BinanceService : CryptoService {
 
     val client: SpotClient = SpotClientImpl()
 
-    fun getCourseForPair(pair: String): String {
+    override fun getCourseForPair(pair: String): List<String> {
         val parameters: Map<String, Any> = hashMapOf(Pair("symbol", pair.uppercase()), Pair("limit", 10))
         var result: String
         try {
@@ -29,10 +27,21 @@ class BinanceService {
             result = e.message.toString()
         }
 
-        return result
+        val json = JSONArray(result)
+        return IntStream.range(0, json.length())
+            .mapToObj { json.getJSONObject(it).toString() }
+            .collect(Collectors.toList())
     }
 
-    fun getSymbols(): Set<String> {
+    override fun getOrderBook(pair: String): String {
+        val client = HttpClient.newBuilder().build();
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create("${PROD_URL}/api/v3/depth?symbol=$pair"))
+            .build();
+        return JSONObject(client.send(request, HttpResponse.BodyHandlers.ofString()).body()).toString()
+    }
+
+    override fun getSymbols(): Set<String> {
         val client = HttpClient.newBuilder().build();
         val request = HttpRequest.newBuilder()
             .uri(URI.create("${PROD_URL}/api/v3/exchangeInfo"))

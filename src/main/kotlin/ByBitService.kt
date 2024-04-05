@@ -9,8 +9,8 @@ import java.net.http.HttpResponse
 import java.util.stream.Collectors
 import java.util.stream.IntStream
 
-class ByBitService {
-    fun serverTime():String {
+class ByBitService : CryptoService {
+    fun serverTime(): String {
         val client = HttpClient.newBuilder().build();
         val request = HttpRequest.newBuilder()
             .uri(URI.create("https://api-testnet.bybit.com/v5/market/time"))
@@ -19,7 +19,25 @@ class ByBitService {
         return response.toString()
     }
 
-    fun getOrderBook(pair: String): String {
+    override fun getCourseForPair(pair: String): List<String> {
+        val client = HttpClient.newBuilder().build();
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create("https://api-testnet.bybit.com/v5/market/tickers?category=inverse&symbol=$pair"))
+            .build()
+        val response = JSONArray(
+            JSONObject(
+                client.send(request, HttpResponse.BodyHandlers.ofString()).body()
+            ).getJSONObject("result")
+                .getJSONArray("list")
+        )
+
+        return IntStream.range(0, response.length())
+            .mapToObj { response.getJSONObject(it).toString() }
+            .collect(Collectors.toList())
+    }
+
+
+    override fun getOrderBook(pair: String): String {
         val client = HttpClient.newBuilder().build();
         val request = HttpRequest.newBuilder()
             .uri(URI.create("https://api-testnet.bybit.com/v5/market/orderbook?category=spot&symbol=${pair.uppercase()}&limit=5"))
@@ -28,7 +46,7 @@ class ByBitService {
         return response.body().toString()
     }
 
-    fun getSymbols(): Set<String> {
+    override fun getSymbols(): Set<String> {
         val client = HttpClient.newBuilder().build();
         val request = HttpRequest.newBuilder()
             .uri(URI.create("https://api-testnet.bybit.com/v5/market/instruments-info?category=spot"))

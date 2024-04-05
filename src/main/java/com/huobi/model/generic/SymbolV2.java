@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class SymbolV2 {
     private String sc;
-    private  String dn;
+    private String dn;
     private String bc;
     private String bcdn;
     private String qc;
@@ -49,5 +49,9 @@ public class SymbolV2 {
                 ", dn='" + dn + '\'' +
                 ", p1=" + p1 +
                 "}\n";
+    }
+
+    public String getDn() {
+        return dn;
     }
 }

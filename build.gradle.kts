@@ -14,6 +14,8 @@ repositories {
 }
 
 dependencies {
+    implementation( "org.jetbrains.kotlin:kotlin-stdlib")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
     implementation("io.github.kotlin-telegram-bot.kotlin-telegram-bot:telegram:6.1.0")
     implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.9")
     implementation("com.alibaba:fastjson:2.0.9.graal")

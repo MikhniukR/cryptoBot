@@ -1,59 +1,19 @@
 package ru.crypto.bot
 
-import com.binance.connector.client.SpotClient
-import com.binance.connector.client.impl.SpotClientImpl
 import com.github.kotlintelegrambot.bot
 import com.github.kotlintelegrambot.dispatch
+import com.github.kotlintelegrambot.dispatcher.callbackQuery
 import com.github.kotlintelegrambot.dispatcher.command
 import com.github.kotlintelegrambot.entities.ChatId
-import com.huobi.client.GenericClient
-import com.huobi.client.MarketClient
-import com.huobi.client.req.market.CandlestickRequest
-import com.huobi.constant.HuobiOptions
-import com.huobi.constant.enums.CandlestickIntervalEnum
-import com.huobi.model.market.Candlestick
-import java.util.function.Consumer
+import com.github.kotlintelegrambot.entities.InlineKeyboardMarkup
+import com.github.kotlintelegrambot.entities.keyboard.InlineKeyboardButton
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import java.util.stream.Collectors
 
-
-// Create GenericClient instance and get the timestamp
-val genericService = GenericClient.create(HuobiOptions())
-val serverTime: Long = genericService.getTimestamp()
-
-// Create MarketClient instance and get btcusdt latest 1-min candlestick
-val marketClient = MarketClient.create(HuobiOptions())
-
+val binanceService = BinanceService()
 val byBitService = ByBitService()
-
-fun getCourseForPairHuobi(pair: String): List<Candlestick> {
-    val list: List<Candlestick> = marketClient.getCandlestick(
-        CandlestickRequest(pair, CandlestickIntervalEnum.MIN1, 10)
-    )
-
-    list.forEach(Consumer { candlestick: Candlestick ->
-        println(candlestick.toString())
-    })
-    return list
-}
-
-fun getCourseForPairBinance(pair: String): String {
-    val client: SpotClient = SpotClientImpl()
-    val parameters: Map<String, Any> = hashMapOf(Pair("symbol", pair.uppercase()), Pair("limit", 10))
-//    val parameters: Map<String, Any> = hashMapOf(Pair("symbol", ArrayList(listOf(pair.uppercase()))))
-    var result: String
-    try {
-        result = client.createMarket().trades(parameters)
-    } catch (e: Exception) {
-        println(e)
-        result = e.message.toString()
-    }
-
-    return result
-}
-
-fun getCourseForPairByBit(pair: String): String {
-    return byBitService.getOrderBook(pair.uppercase())
-}
-
+val huobiService = HuobiService()
 
 fun main() {
     val bot = bot {
@@ -65,24 +25,68 @@ fun main() {
             command("course") {
                 val tradePair = args.joinToString()
                 val response =
-                    if (tradePair.isNotBlank()) getCourseForPairHuobi(tradePair).toString()
+                    if (tradePair.isNotBlank()) huobiService.getCourseForPair(tradePair).toString()
                     else "There is no text apart from command!"
-                bot.sendMessage(
-                    chatId = ChatId.fromId(message.chat.id),
-                    text = "#Huobi \n$response"
-                )
-                bot.sendMessage(
-                    chatId = ChatId.fromId(message.chat.id),
-                    text = "#Binance \n${getCourseForPairBinance(tradePair)}"
-                )
-                bot.sendMessage(
-                    chatId = ChatId.fromId(message.chat.id),
-                    text = "#ByBit \n${getCourseForPairByBit(tradePair)}"
-                )
+                runBlocking {
+                    val job1 = launch {
+                        bot.sendMessage(
+                            chatId = ChatId.fromId(message.chat.id),
+                            text = "#Huobi \n$response"
+                        )
+                    }
+                    val job2 = launch {
+                        bot.sendMessage(
+                            chatId = ChatId.fromId(message.chat.id),
+                            text = "#Binance \n${binanceService.getCourseForPair(tradePair)}"
+                        )
+                    }
+                    val job3 = launch {
+                        bot.sendMessage(
+                            chatId = ChatId.fromId(message.chat.id),
+                            text = "#ByBit \n${byBitService.getOrderBook(tradePair)}"
+                        )
+                    }
+                    job1.join()
+                    job2.join()
+                    job3.join()
+                }
             }
             command("symbols") {
-                val response = genericService.getSymbolsV2(50)
-                bot.sendMessage(chatId = ChatId.fromId(message.chat.id), text = response.toString())
+                bot.sendMessage(chatId = ChatId.fromId(message.chat.id), text = "Please wait for 3 http requests")
+                var symbolsHuobi = setOf("")
+                var symbolsBinance = setOf("")
+                var symbolsByBit = setOf("")
+                runBlocking {
+                    val job1 = launch {
+                        symbolsHuobi = huobiService.getSymbols()
+                    }
+                    val job2 = launch {
+                        symbolsBinance = binanceService.getSymbols()
+                    }
+                    val job3 = launch {
+                        symbolsByBit = byBitService.getSymbols()
+                    }
+                    job1.join()
+                    job2.join()
+                    job3.join()
+                }
+                val symbols = symbolsHuobi.stream()
+                    .map { it.replace("/", "") }
+                    .filter { symbolsBinance.contains(it) }
+//                    .filter {  symbolsByBit.contains(it) }
+                    .collect(Collectors.toSet())
+                bot.sendMessage(chatId = ChatId.fromId(message.chat.id), text = symbols.toString())
+            }
+            command("test") {
+                val inlineKeyboardMarkup = InlineKeyboardMarkup.create(
+                    listOf(InlineKeyboardButton.CallbackData(text = "Test Inline Button", callbackData = "testButton")),
+                    listOf(InlineKeyboardButton.CallbackData(text = "Show alert", callbackData = "showAlert")),
+                )
+                bot.sendMessage(
+                    chatId = ChatId.fromId(message.chat.id),
+                    text = "Hello, inline buttons!",
+                    replyMarkup = inlineKeyboardMarkup,
+                )
             }
             command("help") {
                 bot.sendMessage(
@@ -94,6 +98,18 @@ fun main() {
                             "\"course btcusdt\"\n" +
                             "/symbols get all available symbols"
                 )
+            }
+            callbackQuery("testButton") {
+                val chatId = callbackQuery.message?.chat?.id ?: return@callbackQuery
+                bot.sendMessage(ChatId.fromId(chatId), callbackQuery.data)
+            }
+            callbackQuery(
+                callbackData = "showAlert",
+                callbackAnswerText = "HelloText",
+                callbackAnswerShowAlert = true,
+            ) {
+                val chatId = callbackQuery.message?.chat?.id ?: return@callbackQuery
+                bot.sendMessage(ChatId.fromId(chatId), callbackQuery.data)
             }
         }
     }

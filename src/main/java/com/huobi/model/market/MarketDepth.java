@@ -23,4 +23,19 @@ public class MarketDepth {
 
   private List<PriceLevel> asks;
 
+  public long getVersion() {
+    return version;
+  }
+
+  public Long getTs() {
+    return ts;
+  }
+
+  public List<PriceLevel> getBids() {
+    return bids;
+  }
+
+  public List<PriceLevel> getAsks() {
+    return asks;
+  }
 }

@@ -12,6 +12,7 @@ import com.huobi.model.market.Candlestick
 import java.util.function.Consumer
 import java.util.stream.Collector
 import java.util.stream.Collectors
+import java.util.stream.IntStream
 
 class HuobiService : CryptoService {
 
@@ -33,9 +34,24 @@ class HuobiService : CryptoService {
         return list.stream().map { CoursePair(it.vol.toDouble(), it.open.toDouble())}.collect(Collectors.toList())
     }
 
-    override fun getOrderBook(pair: String): String {
+    override fun getOrderBook(pair: String): List<BidAsk> {
         val marketDepth = marketClient.getMarketDepth(MarketDepthRequest(pair, DepthStepEnum.STEP1))
-        return marketDepth.toString()
+        return IntStream.range(0, marketDepth.asks.size + marketDepth.bids.size)
+            .mapToObj {
+                if (it < marketDepth.asks.size) {
+                    BidAsk(
+                        marketDepth.asks[it].price.toDouble(),
+                        marketDepth.asks[it].amount.toDouble(),
+                        BidAskType.ASK
+                    )
+                } else {
+                    BidAsk(marketDepth.bids[it - marketDepth.asks.size].price.toDouble(),
+                        marketDepth.bids[it - marketDepth.asks.size].amount.toDouble(),
+                        BidAskType.BID
+                    )
+                }
+            }
+            .collect(Collectors.toList())
     }
 
     override fun getSymbols(): Set<String> {

@@ -19,4 +19,11 @@ public class PriceLevel {
 
   private BigDecimal amount;
 
+  public BigDecimal getPrice() {
+    return price;
+  }
+
+  public BigDecimal getAmount() {
+    return amount;
+  }
 }

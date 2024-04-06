@@ -38,13 +38,32 @@ class ByBitService : CryptoService {
     }
 
 
-    override fun getOrderBook(pair: String): String {
+    override fun getOrderBook(pair: String): List<BidAsk> {
         val client = HttpClient.newBuilder().build();
         val request = HttpRequest.newBuilder()
-            .uri(URI.create("https://api-testnet.bybit.com/v5/market/orderbook?category=spot&symbol=${pair.uppercase()}&limit=5"))
+            .uri(URI.create("https://api-testnet.bybit.com/v5/market/orderbook?category=spot&symbol=${pair.uppercase()}&limit=20"))
             .build()
         val response = client.send(request, HttpResponse.BodyHandlers.ofString())
-        return JSONObject(response.body().toString()).getJSONObject("result").toString()
+        val result = JSONObject(response.body().toString()).getJSONObject("result")
+        val asks = result.getJSONArray("a")
+        val bids = result.getJSONArray("b")
+        return IntStream.range(0, asks.length() + bids.length())
+            .mapToObj {
+                if (it < asks.length()) {
+                    BidAsk(
+                        asks.getJSONArray(it).getDouble(0),
+                        asks.getJSONArray(it).getDouble(1),
+                        BidAskType.ASK
+                    )
+                } else {
+                    BidAsk(
+                        bids.getJSONArray(it - asks.length()).getDouble(0),
+                        asks.getJSONArray(it - asks.length()).getDouble(1),
+                        BidAskType.BID
+                    )
+                }
+            }
+            .collect(Collectors.toList())
     }
 
     override fun getSymbols(): Set<String> {

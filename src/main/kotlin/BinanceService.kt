@@ -34,12 +34,33 @@ class BinanceService : CryptoService {
             .collect(Collectors.toList())
     }
 
-    override fun getOrderBook(pair: String): String {
+    override fun getOrderBook(pair: String): List<BidAsk> {
         val client = HttpClient.newBuilder().build();
         val request = HttpRequest.newBuilder()
-            .uri(URI.create("${PROD_URL}/api/v3/depth?symbol=${pair.uppercase()}"))
+            .uri(URI.create("${PROD_URL}/api/v3/depth?symbol=${pair.uppercase()}&limit=20"))
             .build();
-        return JSONObject(client.send(request, HttpResponse.BodyHandlers.ofString()).body()).toString()
+        val asks = JSONObject(client.send(request, HttpResponse.BodyHandlers.ofString()).body())
+            .getJSONArray("asks")
+
+        val bids = JSONObject(client.send(request, HttpResponse.BodyHandlers.ofString()).body())
+            .getJSONArray("bids")
+        return IntStream.range(0, asks.length() + bids.length())
+            .mapToObj {
+                if (it < asks.length()) {
+                    BidAsk(
+                        asks.getJSONArray(it).getDouble(0),
+                        asks.getJSONArray(it).getDouble(1),
+                        BidAskType.ASK
+                    )
+                } else {
+                    BidAsk(
+                        bids.getJSONArray(it - asks.length()).getDouble(0),
+                        asks.getJSONArray(it - asks.length()).getDouble(1),
+                        BidAskType.BID
+                    )
+                }
+            }
+            .collect(Collectors.toList())
     }
 
     override fun getSymbols(): Set<String> {

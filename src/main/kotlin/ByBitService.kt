@@ -22,7 +22,7 @@ class ByBitService : CryptoService {
     override fun getCourseForPair(pair: String): List<CoursePair> {
         val client = HttpClient.newBuilder().build();
         val request = HttpRequest.newBuilder()
-            .uri(URI.create("https://api-testnet.bybit.com/v5/market/tickers?category=inverse&symbol=$pair"))
+                .uri(URI.create("https://api-testnet.bybit.com/v5/market/tickers?category=spot&symbol=${pair.uppercase()}"))
             .build()
         val response = JSONArray(
             JSONObject(
@@ -33,7 +33,11 @@ class ByBitService : CryptoService {
 
         return IntStream.range(0, response.length())
             .mapToObj { response.getJSONObject(it) }
-            .map { CoursePair(it.getDouble("openInterestValue"), it.getDouble("bid1Price")) }
+            .flatMap {
+                listOf(CoursePair(it.getDouble("bid1Size"), it.getDouble("bid1Price")),
+                    CoursePair(it.getDouble("ask1Size"), it.getDouble("ask1Price"))
+                ).stream()
+            }
             .collect(Collectors.toList())
     }
 
